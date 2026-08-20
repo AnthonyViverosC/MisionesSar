@@ -162,6 +162,28 @@ Activa **Point-in-Time Recovery** en el panel del proyecto (Database → Backups
 El procedimiento de restauración está documentado en
 [`docs/decisiones-tecnicas.md`](docs/decisiones-tecnicas.md).
 
+## Pantallas
+
+| Ruta | Para quién | Qué hace |
+|---|---|---|
+| `/` | Todos | Tablero: conteos por estado y la cola de trabajo del rol |
+| `/misiones` | Todos | Listado con filtros, orden y paginación en el servidor |
+| `/misiones/nueva` | Operador, admin | Alta en tres pasos |
+| `/misiones/[id]` | Todos | Expediente: datos, checklist de soportes, hilo y línea de tiempo |
+| `/misiones/[id]/documentos` | Operador, admin | Carga y reemplazo de los ocho archivos |
+| `/revision` | Supervisor, admin | Bandeja de misiones que esperan decisión |
+| `/archivo` | Todos | Histórico de misiones cerradas, con exportación a CSV y ZIP |
+| `/notificaciones` | Todos | Avisos por cambio de estado |
+| `/perfil` | Todos | Datos de contacto y cambio de contraseña |
+| `/ayuda` | Todos | Flujo, soportes exigidos, roles y dudas frecuentes |
+| `/admin` | Admin | Resumen de cuentas, catálogos y últimos movimientos |
+| `/admin/usuarios` | Admin | Invitar, editar, reenviar acceso, activar y desactivar |
+| `/admin/catalogos` | Admin | Unidades, aeronaves y tipos de misión |
+| `/admin/auditoria` | Admin | Bitácora filtrable, con el detalle de cada cambio |
+
+Qué filas devuelve cada pantalla lo decide RLS, no la pantalla: el operador ve
+lo suyo, el supervisor lo de su unidad y el rol de consulta solo lo aprobado.
+
 ## Organización del repositorio
 
 ```
@@ -171,19 +193,23 @@ src/
     (publico)/    login, recuperación, invitación
     (tramite)/    primer ingreso: contraseña propia y aviso de uso
     (app)/        aplicación con sesión: tablero, misiones, revisión, admin
+    api/          descarga del expediente en ZIP y exportación del archivo a CSV
     auth/         retorno de los enlaces por correo y cierre de sesión
   components/     interfaz; `ui/` son los componentes base de shadcn
   config/         identidad de la unidad (escudo y nombres)
-  dominio/        reglas del negocio: roles, estados y soportes
+  dominio/        reglas del negocio: roles, estados, soportes y esquemas
   lib/            Supabase, sesión, seguridad y utilidades
   tipos/          tipos del esquema de la base
 supabase/
   migrations/     esquema, funciones, triggers y políticas de RLS
   seed/           semilla de desarrollo
 pruebas/
-  unitarias/      reglas de estado sin base de datos
+  unitarias/      reglas de estado y validaciones sin base de datos
   integracion/    políticas de RLS y triggers contra el proyecto real
+docs/
+  decisiones-tecnicas.md
 ```
 
 Todo el código y los comentarios están en español. Las pruebas de integración se
 saltan solas si no hay credenciales configuradas.
+# MisionesSar
