@@ -17,9 +17,13 @@ const esquemaPublico = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z
     .string({ error: "falta. Panel de Supabase → Settings → API → Project URL." })
     .url("debe ser una URL completa, con https:// incluido."),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z
-    .string({ error: "falta. Panel de Supabase → Settings → API → anon public." })
-    .min(20, "parece incompleta: la clave anónima es mucho más larga."),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
+    .string({
+      error:
+        "falta. Panel de Supabase → Settings → API Keys → publishable " +
+        "(también vale la antigua NEXT_PUBLIC_SUPABASE_ANON_KEY).",
+    })
+    .min(20, "parece incompleta: la clave pública es mucho más larga."),
   NEXT_PUBLIC_URL_APLICACION: z
     .string()
     .url("debe ser una URL completa: https://tu-proyecto.vercel.app, sin barra final.")
@@ -47,11 +51,18 @@ function valor(bruto: string | undefined): string | undefined {
 /**
  * Next.js sustituye estas referencias en tiempo de compilación, por eso se
  * escriben completas y no con acceso dinámico.
+ *
+ * De la clave pública se aceptan los dos nombres que usa Supabase: el actual
+ * (`PUBLISHABLE_KEY`, el que crea la integración con Vercel) y el anterior
+ * (`ANON_KEY`). Son la misma clave y cumplen la misma función: identificar al
+ * proyecto sin conceder permisos, porque todo pasa por RLS.
  */
 function leerDelProceso() {
   return {
     NEXT_PUBLIC_SUPABASE_URL: valor(process.env.NEXT_PUBLIC_SUPABASE_URL),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: valor(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+      valor(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) ??
+      valor(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     NEXT_PUBLIC_URL_APLICACION: valor(process.env.NEXT_PUBLIC_URL_APLICACION),
     NEXT_PUBLIC_MINUTOS_INACTIVIDAD: valor(process.env.NEXT_PUBLIC_MINUTOS_INACTIVIDAD),
   };

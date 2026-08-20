@@ -14,8 +14,12 @@ import type { Database } from "../../src/tipos/basedatos";
 cargarEntorno({ path: ".env.local", quiet: true });
 
 export const URL_SUPABASE = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-export const CLAVE_ANONIMA = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-export const CLAVE_SERVICIO = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+export const CLAVE_ANONIMA =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+  "";
+export const CLAVE_SERVICIO =
+  process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 export const CLAVE_USUARIOS = process.env.PRUEBAS_CLAVE_USUARIOS ?? "Sar.Pruebas.2026!";
 
 /** ¿Hay un proyecto real configurado? */

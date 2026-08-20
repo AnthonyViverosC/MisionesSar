@@ -23,12 +23,13 @@ import { generarMp4, generarPdf, generarPng } from "./archivos-sinteticos";
 cargarEntorno({ path: ".env.local", quiet: true });
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const CLAVE_SERVICIO = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const CLAVE_SERVICIO = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CLAVE_USUARIOS = process.env.PRUEBAS_CLAVE_USUARIOS ?? "Sar.Pruebas.2026!";
 
 if (!URL || !CLAVE_SERVICIO) {
   console.error(
-    "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env.local.",
+    "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SECRET_KEY " +
+      "(antes SUPABASE_SERVICE_ROLE_KEY) en .env.local.",
   );
   process.exit(1);
 }

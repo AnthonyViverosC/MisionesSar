@@ -44,14 +44,18 @@ Todas están documentadas en `.env.example`. Las imprescindibles:
 
 | Variable | De dónde sale | Se expone al navegador |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Panel → Settings → API | Sí |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Panel → Settings → API | Sí |
-| `SUPABASE_SERVICE_ROLE_KEY` | Panel → Settings → API | **No, nunca** |
+| `NEXT_PUBLIC_SUPABASE_URL` | Panel → Settings → API Keys | Sí |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Panel → Settings → API Keys | Sí |
+| `SUPABASE_SECRET_KEY` | Panel → Settings → API Keys | **No, nunca** |
 | `SUPABASE_DB_PASSWORD` | Panel → Settings → Database | No |
 | `SUPABASE_PROJECT_REF` | La parte variable de la URL del proyecto | No |
 | `NEXT_PUBLIC_URL_APLICACION` | `http://localhost:3000` en local | Sí |
 
-La clave de servicio salta todas las políticas de RLS. Solo se usa en el
+Los nombres anteriores de esas dos claves —`NEXT_PUBLIC_SUPABASE_ANON_KEY` y
+`SUPABASE_SERVICE_ROLE_KEY`— se siguen aceptando, de modo que un proyecto ya
+configurado no necesita tocarse.
+
+La clave secreta salta todas las políticas de RLS. Solo se usa en el
 servidor, desde `src/lib/supabase/servicio.ts`, que importa `server-only`: si
 alguien la arrastrara a un componente de cliente, la compilación falla.
 
@@ -154,15 +158,17 @@ Supabase:
    | Variable | Valor en producción |
    |---|---|
    | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | la clave *anon public* |
-   | `SUPABASE_SERVICE_ROLE_KEY` | la clave de servicio |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | la clave *publishable* |
+   | `SUPABASE_SECRET_KEY` | la clave *secret* |
    | `NEXT_PUBLIC_URL_APLICACION` | `https://tu-proyecto.vercel.app`, sin barra final |
    | `NEXT_PUBLIC_MINUTOS_INACTIVIDAD` | `30` |
 
-   Las cuatro primeras son obligatorias: **sin ellas la compilación falla**, a
-   propósito, con un mensaje que dice cuál falta (`src/lib/entorno.ts`). Las
-   `NEXT_PUBLIC_*` se incrustan al compilar, así que después de añadirlas o
-   cambiarlas hay que **volver a desplegar**: guardar la variable no basta.
+   Las cuatro primeras son obligatorias. La compilación no las exige —así un
+   despliegue no se cae por una variable ausente—, pero la aplicación no
+   atiende una sola petición sin ellas: falla con un mensaje que dice cuál
+   falta (`src/lib/entorno.ts`). Las `NEXT_PUBLIC_*` se incrustan al compilar,
+   así que después de añadirlas o cambiarlas hay que **volver a desplegar**:
+   guardar la variable no basta.
    Las variables `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF` y
    `PRUEBAS_CLAVE_USUARIOS` solo hacen falta en tu máquina, no en Vercel.
 3. En Supabase, **Authentication → URL Configuration**, agrega el dominio de

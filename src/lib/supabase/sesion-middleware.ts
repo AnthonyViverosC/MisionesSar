@@ -40,7 +40,7 @@ export async function resolverSesion(request: NextRequest, respuesta: NextRespon
 
   const supabase = createServerClient<Database>(
     entornoPublico.NEXT_PUBLIC_SUPABASE_URL,
-    entornoPublico.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    entornoPublico.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {

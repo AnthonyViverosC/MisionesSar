@@ -19,12 +19,14 @@ import type { Database } from "@/tipos/basedatos";
  * usuario y qué puede hacer.
  */
 export function crearClienteServicio() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const clave = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+  // Se aceptan los dos nombres de Supabase: el actual y el anterior.
+  const clave = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !clave) {
     throw new Error(
-      "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno.",
+      "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SECRET_KEY " +
+        "(antes SUPABASE_SERVICE_ROLE_KEY) en el entorno.",
     );
   }
 

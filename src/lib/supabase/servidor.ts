@@ -9,7 +9,7 @@ import type { Database } from "@/tipos/basedatos";
  * Cliente de Supabase para el servidor (Server Components, Server Actions y
  * Route Handlers).
  *
- * Actúa en nombre del usuario: usa la clave anónima y la sesión de la cookie,
+ * Actúa en nombre del usuario: usa la clave pública y la sesión de la cookie,
  * de modo que todas sus consultas pasan por RLS. Es el cliente por defecto:
  * el de servicio solo se usa donde está explícitamente justificado.
  */
@@ -18,7 +18,7 @@ export async function crearClienteServidor() {
 
   return createServerClient<Database>(
     entornoPublico.NEXT_PUBLIC_SUPABASE_URL,
-    entornoPublico.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    entornoPublico.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
         getAll() {
