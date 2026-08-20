@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { entornoPublico, MS_INACTIVIDAD } from "@/lib/entorno";
+import { exigeMfa } from "@/dominio/roles";
 import type { Database } from "@/tipos/basedatos";
 
 /** Nombre de la cookie que guarda la marca de última actividad. */
@@ -142,20 +143,22 @@ export async function resolverSesion(request: NextRequest, respuesta: NextRespon
     return NextResponse.redirect(destino);
   }
 
-  // MFA: obligatorio para admin y supervisor.
+  // Verificación en dos pasos.
+  //
+  // Ningún rol está obligado a tenerla (ver ROLES_CON_MFA_OBLIGATORIO). Pero a
+  // quien la haya activado por su cuenta sí se le pide: un factor inscrito que
+  // no se verifica no protegería nada.
   const { data: nivelMfa } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  const exigeMfa = perfil.rol === "admin" || perfil.rol === "supervisor";
 
   if (nivelMfa?.nextLevel === "aal2" && nivelMfa.nextLevel !== nivelMfa.currentLevel) {
-    // Tiene un factor inscrito pero no lo ha verificado en esta sesión.
     const destino = request.nextUrl.clone();
     destino.pathname = "/verificar";
     destino.search = "";
     return NextResponse.redirect(destino);
   }
 
-  if (exigeMfa && nivelMfa?.nextLevel !== "aal2") {
-    // Su rol exige segundo factor y todavía no ha inscrito ninguno.
+  if (exigeMfa(perfil.rol) && nivelMfa?.nextLevel !== "aal2") {
+    // Solo si la unidad vuelve a exigirlo para este rol.
     const destino = request.nextUrl.clone();
     destino.pathname = "/perfil/mfa";
     destino.search = "?motivo=obligatorio";

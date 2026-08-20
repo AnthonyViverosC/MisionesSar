@@ -27,8 +27,16 @@ export const DESCRIPCION_ROL: Record<Rol, string> = {
   consulta: "Solo lectura y descarga de misiones aprobadas.",
 };
 
-/** Roles a los que se les exige MFA por TOTP. */
-export const ROLES_CON_MFA_OBLIGATORIO: readonly Rol[] = ["admin", "supervisor"];
+/**
+ * Roles a los que se les exige verificación en dos pasos.
+ *
+ * Hoy la lista está vacía por decisión de la unidad: el segundo factor es
+ * voluntario y se activa desde el perfil. Para volver a exigirlo a los roles con
+ * atribuciones de aprobación basta con escribir aquí `["admin", "supervisor"]`;
+ * el resto del flujo —inscripción, verificación al ingresar y bloqueo del
+ * retiro— ya está implementado y se aplica solo.
+ */
+export const ROLES_CON_MFA_OBLIGATORIO: readonly Rol[] = [];
 
 export function exigeMfa(rol: Rol): boolean {
   return ROLES_CON_MFA_OBLIGATORIO.includes(rol);

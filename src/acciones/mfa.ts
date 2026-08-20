@@ -4,14 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { exigeMfa } from "@/dominio/roles";
 import type { EstadoAccion } from "@/acciones/autenticacion";
 
 /**
  * Segundo factor por TOTP.
  *
- * Obligatorio para admin y supervisor, opcional para el resto. La inscripción
- * y la verificación las hace Supabase Auth; aquí solo se orquesta el flujo y se
- * devuelven mensajes en la voz del sistema.
+ * Voluntario: ningún rol está obligado a activarlo (ver
+ * `ROLES_CON_MFA_OBLIGATORIO`). Quien lo activa desde su perfil sí tendrá que
+ * verificarlo al ingresar. La inscripción y la verificación las hace Supabase
+ * Auth; aquí solo se orquesta el flujo y se redactan los mensajes.
  */
 
 const esquemaCodigo = z.object({
@@ -150,7 +152,8 @@ export async function retirarFactorMfa(factorId: string): Promise<EstadoAccion> 
     .eq("id", user.id)
     .maybeSingle();
 
-  if (perfil?.rol === "admin" || perfil?.rol === "supervisor") {
+  // Solo se impide retirarlo si la unidad lo exige para ese rol.
+  if (perfil && exigeMfa(perfil.rol)) {
     return { error: "Tu rol exige mantener el segundo factor activo." };
   }
 

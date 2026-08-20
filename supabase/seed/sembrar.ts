@@ -328,7 +328,7 @@ async function sembrar() {
     console.log(`  ${usuario.rol.padEnd(10)} ${usuario.correo}`);
   }
   console.log(
-    "\nAdmin y supervisor deben inscribir su segundo factor en el primer ingreso.",
+    "\nLa verificación en dos pasos es voluntaria: se activa desde Mi perfil.",
   );
 }
 

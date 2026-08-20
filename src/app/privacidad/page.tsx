@@ -93,8 +93,8 @@ export default function PaginaPrivacidad() {
               El acceso se otorga por invitación del administrador y se limita por rol y por
               unidad. Los archivos se guardan en almacenamiento privado y solo se entregan
               mediante enlaces firmados de cinco minutos, emitidos tras verificar el permiso de
-              quien los solicita. Las cuentas de administrador y supervisor requieren verificación
-              en dos pasos.
+              quien los solicita. Cada usuario puede activar la verificación en dos pasos desde su
+              perfil.
             </p>
           </section>
 

@@ -17,8 +17,9 @@ export default async function PaginaVerificar() {
   const { data: factores } = await supabase.auth.mfa.listFactors();
   const verificado = factores?.totp?.find((factor) => factor.status === "verified");
 
-  // Sin factor inscrito no hay nada que verificar: corresponde inscribirlo.
-  if (!verificado) redirect("/perfil/mfa");
+  // Sin factor inscrito no hay nada que verificar: el segundo factor es
+  // voluntario, así que quien no lo tenga sigue directo al tablero.
+  if (!verificado) redirect("/");
 
   return (
     <div className="space-y-6">

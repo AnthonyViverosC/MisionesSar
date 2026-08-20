@@ -121,7 +121,9 @@ pnpm lint       # estilo
 | `operador.sur@sar.mil.co` | Operador | Grupo Aéreo del Sur |
 
 La última existe para comprobar que un operador no ve misiones de otra unidad.
-Admin y supervisor deben inscribir su segundo factor en el primer ingreso.
+La verificación en dos pasos es voluntaria: cada usuario la activa desde su
+perfil. Para volver a exigirla a un rol, añádelo a `ROLES_CON_MFA_OBLIGATORIO`
+en `src/dominio/roles.ts`; el flujo completo ya está implementado.
 
 ## Crear el primer administrador en producción
 
@@ -141,8 +143,8 @@ Supabase:
    where id = (select id from auth.users where email = 'admin@tu-dominio.mil');
    ```
 
-3. Entra con esa cuenta: la aplicación exigirá cambiar la contraseña, aceptar el
-   aviso de uso e inscribir el segundo factor. Desde ahí se invita al resto.
+3. Entra con esa cuenta: la aplicación exigirá cambiar la contraseña y aceptar
+   el aviso de uso. Desde ahí se invita al resto.
 
 ## Despliegue en Vercel
 
