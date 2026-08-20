@@ -1,8 +1,15 @@
-import Image from "next/image";
 import { INSTITUCION } from "@/config/institucion";
 import { cn } from "@/lib/utils";
 
-/** Escudo de la unidad. El archivo se reemplaza en `public/escudo.svg`. */
+/**
+ * Escudo de la unidad. El archivo se reemplaza en `public/escudo.svg`.
+ *
+ * Va con `img` y no con `next/image` a propósito: el optimizador de imágenes no
+ * procesa SVG —responde 400 salvo que se active `dangerouslyAllowSVG`— y un
+ * vectorial de menos de 1 KB no tiene nada que optimizar. Servirlo directo
+ * evita el rodeo por `/_next/image` y el preload hacia una URL que el
+ * optimizador rechaza.
+ */
 export function Escudo({
   tamano = 40,
   className,
@@ -11,13 +18,13 @@ export function Escudo({
   className?: string;
 }) {
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element -- SVG estático, ver arriba
+    <img
       src={INSTITUCION.escudo}
       alt={`Escudo de ${INSTITUCION.unidadPropietaria}`}
       width={tamano}
       height={tamano}
       className={cn("shrink-0", className)}
-      priority
     />
   );
 }
