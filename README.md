@@ -121,9 +121,8 @@ pnpm lint       # estilo
 | `operador.sur@sar.mil.co` | Operador | Grupo Aéreo del Sur |
 
 La última existe para comprobar que un operador no ve misiones de otra unidad.
-La verificación en dos pasos es voluntaria: cada usuario la activa desde su
-perfil. Para volver a exigirla a un rol, añádelo a `ROLES_CON_MFA_OBLIGATORIO`
-en `src/dominio/roles.ts`; el flujo completo ya está implementado.
+El ingreso es con correo y contraseña. No hay verificación en dos pasos: la
+unidad decidió no usarla.
 
 ## Crear el primer administrador en producción
 
@@ -170,7 +169,7 @@ src/
   acciones/       Server Actions (toda mutación pasa por aquí)
   app/
     (publico)/    login, recuperación, invitación
-    (tramite)/    primer ingreso, verificación e inscripción de MFA
+    (tramite)/    primer ingreso: contraseña propia y aviso de uso
     (app)/        aplicación con sesión: tablero, misiones, revisión, admin
     auth/         retorno de los enlaces por correo y cierre de sesión
   components/     interfaz; `ui/` son los componentes base de shadcn

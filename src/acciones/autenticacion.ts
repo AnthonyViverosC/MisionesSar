@@ -116,7 +116,7 @@ export async function iniciarSesion(
     .update({ ultimo_acceso: new Date().toISOString() })
     .eq("id", data.user.id);
 
-  // El middleware decide si toca primer ingreso, verificación de MFA o destino.
+  // El middleware decide si toca el primer ingreso o el destino solicitado.
   redirect(siguiente && siguiente.startsWith("/") ? siguiente : "/");
 }
 

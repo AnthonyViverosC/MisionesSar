@@ -93,8 +93,8 @@ export default function PaginaPrivacidad() {
               El acceso se otorga por invitación del administrador y se limita por rol y por
               unidad. Los archivos se guardan en almacenamiento privado y solo se entregan
               mediante enlaces firmados de cinco minutos, emitidos tras verificar el permiso de
-              quien los solicita. Cada usuario puede activar la verificación en dos pasos desde su
-              perfil.
+              quien los solicita. El ingreso exige contraseña propia de al menos doce caracteres,
+              se bloquea tras cinco intentos fallidos y la sesión se cierra por inactividad.
             </p>
           </section>
 

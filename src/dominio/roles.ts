@@ -28,16 +28,8 @@ export const DESCRIPCION_ROL: Record<Rol, string> = {
 };
 
 /**
- * Roles a los que se les exige verificación en dos pasos.
- *
- * Hoy la lista está vacía por decisión de la unidad: el segundo factor es
- * voluntario y se activa desde el perfil. Para volver a exigirlo a los roles con
- * atribuciones de aprobación basta con escribir aquí `["admin", "supervisor"]`;
- * el resto del flujo —inscripción, verificación al ingresar y bloqueo del
- * retiro— ya está implementado y se aplica solo.
+ * Nota sobre verificación en dos pasos: la unidad decidió no usarla. El ingreso
+ * es con correo y contraseña, sin segundo factor para ningún rol. La protección
+ * de las cuentas se apoya en la contraseña larga verificada contra filtraciones,
+ * el bloqueo tras cinco intentos fallidos y la expiración por inactividad.
  */
-export const ROLES_CON_MFA_OBLIGATORIO: readonly Rol[] = [];
-
-export function exigeMfa(rol: Rol): boolean {
-  return ROLES_CON_MFA_OBLIGATORIO.includes(rol);
-}

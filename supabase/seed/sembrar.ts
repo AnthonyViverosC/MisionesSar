@@ -327,9 +327,7 @@ async function sembrar() {
   for (const usuario of USUARIOS) {
     console.log(`  ${usuario.rol.padEnd(10)} ${usuario.correo}`);
   }
-  console.log(
-    "\nLa verificación en dos pasos es voluntaria: se activa desde Mi perfil.",
-  );
+  console.log("\nEl ingreso es con correo y contraseña, sin verificación adicional.");
 }
 
 /** Crea la cuenta si no existe y deja el perfil listo para entrar. */

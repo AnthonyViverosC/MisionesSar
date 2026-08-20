@@ -1,7 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { entornoPublico, MS_INACTIVIDAD } from "@/lib/entorno";
-import { exigeMfa } from "@/dominio/roles";
 import type { Database } from "@/tipos/basedatos";
 
 /** Nombre de la cookie que guarda la marca de última actividad. */
@@ -18,14 +17,8 @@ const RUTAS_PUBLICAS = [
 ];
 
 /** Rutas que un usuario con sesión iniciada puede visitar aunque tenga
- *  obligaciones pendientes (cambio de contraseña, MFA o aviso de uso). */
-const RUTAS_DE_TRAMITE = [
-  "/primer-ingreso",
-  "/verificar",
-  "/perfil/mfa",
-  "/auth/cerrar",
-  "/privacidad",
-];
+ *  pendiente el primer ingreso (cambio de contraseña y aviso de uso). */
+const RUTAS_DE_TRAMITE = ["/primer-ingreso", "/auth/cerrar", "/privacidad"];
 
 export function esRutaPublica(ruta: string): boolean {
   return RUTAS_PUBLICAS.some((publica) => ruta === publica || ruta.startsWith(`${publica}/`));
@@ -143,28 +136,7 @@ export async function resolverSesion(request: NextRequest, respuesta: NextRespon
     return NextResponse.redirect(destino);
   }
 
-  // Verificación en dos pasos.
-  //
-  // Ningún rol está obligado a tenerla (ver ROLES_CON_MFA_OBLIGATORIO). Pero a
-  // quien la haya activado por su cuenta sí se le pide: un factor inscrito que
-  // no se verifica no protegería nada.
-  const { data: nivelMfa } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-
-  if (nivelMfa?.nextLevel === "aal2" && nivelMfa.nextLevel !== nivelMfa.currentLevel) {
-    const destino = request.nextUrl.clone();
-    destino.pathname = "/verificar";
-    destino.search = "";
-    return NextResponse.redirect(destino);
-  }
-
-  if (exigeMfa(perfil.rol) && nivelMfa?.nextLevel !== "aal2") {
-    // Solo si la unidad vuelve a exigirlo para este rol.
-    const destino = request.nextUrl.clone();
-    destino.pathname = "/perfil/mfa";
-    destino.search = "?motivo=obligatorio";
-    return NextResponse.redirect(destino);
-  }
-
+  // El ingreso es con correo y contraseña: no hay segundo factor que verificar.
   return respuesta;
 }
 

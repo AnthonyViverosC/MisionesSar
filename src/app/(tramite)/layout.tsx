@@ -2,9 +2,9 @@ import { Marca } from "@/components/marca/escudo";
 import { INSTITUCION } from "@/config/institucion";
 
 /**
- * Marco de los trámites que hay que resolver antes de entrar: cambio de
- * contraseña del primer ingreso, verificación e inscripción del segundo factor.
- * Sin navegación lateral, para que no haya dónde desviarse.
+ * Marco del trámite que hay que resolver antes de entrar por primera vez:
+ * definir la contraseña propia y aceptar el aviso de uso. Sin navegación
+ * lateral, para que no haya dónde desviarse.
  */
 export default function LayoutTramite({ children }: { children: React.ReactNode }) {
   return (
