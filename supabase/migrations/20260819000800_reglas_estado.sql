@@ -24,7 +24,7 @@ set search_path = ''
 as $$
 declare
   v_usuario uuid := (select auth.uid());
-  v_rol public.rol_usuario := auth.rol_actual();
+  v_rol public.rol_usuario := public.rol_actual();
   v_es_servicio boolean := v_usuario is null;
   v_observaciones_pendientes integer;
 begin
@@ -209,7 +209,7 @@ set search_path = ''
 as $$
 declare
   v_estado public.estado_mision;
-  v_rol public.rol_usuario := auth.rol_actual();
+  v_rol public.rol_usuario := public.rol_actual();
   v_es_servicio boolean := (select auth.uid()) is null;
 begin
   select m.estado into v_estado

@@ -27,6 +27,13 @@ grant select, update on public.notificaciones to authenticated;
 grant select on public.auditoria to authenticated;
 grant select on public.misiones_con_completitud to authenticated;
 
+-- El rol de servicio administra desde el servidor (invitaciones, URL firmadas,
+-- semilla). Salta RLS, pero el GRANT sigue haciendo falta: Supabase ya no
+-- expone automáticamente las tablas nuevas a los roles de la API.
+-- Tampoco recibe DELETE: la regla de que nada se borra vale también aquí.
+grant select, insert, update on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
+
 alter table public.unidades enable row level security;
 alter table public.aeronaves enable row level security;
 alter table public.tipos_mision enable row level security;
@@ -56,7 +63,7 @@ as $$
 declare
   v_estado public.estado_mision;
   v_creada_por uuid;
-  v_rol public.rol_usuario := auth.rol_actual();
+  v_rol public.rol_usuario := public.rol_actual();
   v_usuario uuid := (select auth.uid());
 begin
   select m.estado, m.creada_por into v_estado, v_creada_por
@@ -79,7 +86,7 @@ begin
 end;
 $$;
 
-grant execute on function public.puede_editar_mision to authenticated;
+grant execute on function public.puede_editar_mision to authenticated, service_role;
 
 -- Directorio de personal: nombre y grado de cualquier usuario, sin exponer
 -- documento, teléfono ni rol. Permite mostrar "creada por" sin abrir `perfiles`.
@@ -108,12 +115,12 @@ create policy unidades_select on public.unidades
 -- INSERT / UPDATE: exclusivo del admin. No hay DELETE: un catálogo se desactiva.
 create policy unidades_insert on public.unidades
   for insert to authenticated
-  with check (auth.tiene_rol('admin'));
+  with check (public.tiene_rol('admin'));
 
 create policy unidades_update on public.unidades
   for update to authenticated
-  using (auth.tiene_rol('admin'))
-  with check (auth.tiene_rol('admin'));
+  using (public.tiene_rol('admin'))
+  with check (public.tiene_rol('admin'));
 
 create policy aeronaves_select on public.aeronaves
   for select to authenticated
@@ -121,12 +128,12 @@ create policy aeronaves_select on public.aeronaves
 
 create policy aeronaves_insert on public.aeronaves
   for insert to authenticated
-  with check (auth.tiene_rol('admin'));
+  with check (public.tiene_rol('admin'));
 
 create policy aeronaves_update on public.aeronaves
   for update to authenticated
-  using (auth.tiene_rol('admin'))
-  with check (auth.tiene_rol('admin'));
+  using (public.tiene_rol('admin'))
+  with check (public.tiene_rol('admin'));
 
 create policy tipos_mision_select on public.tipos_mision
   for select to authenticated
@@ -134,12 +141,12 @@ create policy tipos_mision_select on public.tipos_mision
 
 create policy tipos_mision_insert on public.tipos_mision
   for insert to authenticated
-  with check (auth.tiene_rol('admin'));
+  with check (public.tiene_rol('admin'));
 
 create policy tipos_mision_update on public.tipos_mision
   for update to authenticated
-  using (auth.tiene_rol('admin'))
-  with check (auth.tiene_rol('admin'));
+  using (public.tiene_rol('admin'))
+  with check (public.tiene_rol('admin'));
 
 -- =============================================================================
 -- Perfiles
@@ -151,8 +158,8 @@ create policy perfiles_select on public.perfiles
   for select to authenticated
   using (
     id = (select auth.uid())
-    or auth.tiene_rol('admin')
-    or (auth.tiene_rol('supervisor') and unidad_id = auth.unidad_actual())
+    or public.tiene_rol('admin')
+    or (public.tiene_rol('supervisor') and unidad_id = public.unidad_actual())
   );
 
 -- INSERT: ninguna política. Los perfiles nacen del trigger sobre auth.users
@@ -163,8 +170,8 @@ create policy perfiles_select on public.perfiles
 -- `proteger_campos_perfil`, porque RLS no distingue columnas.
 create policy perfiles_update on public.perfiles
   for update to authenticated
-  using (id = (select auth.uid()) or auth.tiene_rol('admin'))
-  with check (id = (select auth.uid()) or auth.tiene_rol('admin'));
+  using (id = (select auth.uid()) or public.tiene_rol('admin'))
+  with check (id = (select auth.uid()) or public.tiene_rol('admin'));
 
 -- DELETE: ninguna política. Un usuario se desactiva, no se borra.
 
@@ -180,7 +187,7 @@ declare
   v_usuario uuid := (select auth.uid());
 begin
   -- Sin sesión es el rol de servicio (invitaciones, semilla).
-  if v_usuario is null or auth.tiene_rol('admin') then
+  if v_usuario is null or public.tiene_rol('admin') then
     return new;
   end if;
 
@@ -211,10 +218,10 @@ create trigger perfiles_proteger_campos
 create policy misiones_select on public.misiones
   for select to authenticated
   using (
-    auth.tiene_rol('admin')
-    or (auth.tiene_rol('operador') and creada_por = (select auth.uid()))
-    or (auth.tiene_rol('supervisor') and unidad_id = auth.unidad_actual())
-    or (auth.tiene_rol('consulta') and estado = 'aprobada')
+    public.tiene_rol('admin')
+    or (public.tiene_rol('operador') and creada_por = (select auth.uid()))
+    or (public.tiene_rol('supervisor') and unidad_id = public.unidad_actual())
+    or (public.tiene_rol('consulta') and estado = 'aprobada')
   );
 
 -- INSERT: el operador crea misiones a su nombre y dentro de su unidad; el admin
@@ -223,12 +230,12 @@ create policy misiones_insert on public.misiones
   for insert to authenticated
   with check (
     (
-      auth.tiene_rol('operador')
+      public.tiene_rol('operador')
       and creada_por = (select auth.uid())
-      and unidad_id = auth.unidad_actual()
+      and unidad_id = public.unidad_actual()
       and estado = 'borrador'
     )
-    or auth.tiene_rol('admin')
+    or public.tiene_rol('admin')
   );
 
 -- UPDATE: el operador corrige lo suyo mientras esté abierto; el supervisor toca
@@ -238,22 +245,22 @@ create policy misiones_insert on public.misiones
 create policy misiones_update on public.misiones
   for update to authenticated
   using (
-    auth.tiene_rol('admin')
+    public.tiene_rol('admin')
     or (
-      auth.tiene_rol('operador')
+      public.tiene_rol('operador')
       and creada_por = (select auth.uid())
       and estado in ('borrador', 'observada')
     )
     or (
-      auth.tiene_rol('supervisor')
-      and unidad_id = auth.unidad_actual()
+      public.tiene_rol('supervisor')
+      and unidad_id = public.unidad_actual()
       and estado in ('enviada', 'en_revision')
     )
   )
   with check (
-    auth.tiene_rol('admin')
-    or (auth.tiene_rol('operador') and creada_por = (select auth.uid()))
-    or (auth.tiene_rol('supervisor') and unidad_id = auth.unidad_actual())
+    public.tiene_rol('admin')
+    or (public.tiene_rol('operador') and creada_por = (select auth.uid()))
+    or (public.tiene_rol('supervisor') and unidad_id = public.unidad_actual())
   );
 
 -- DELETE: ninguna política. Las misiones se anulan con motivo.
@@ -267,7 +274,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_rol public.rol_usuario := auth.rol_actual();
+  v_rol public.rol_usuario := public.rol_actual();
 begin
   if (select auth.uid()) is null or v_rol = 'admin' then
     return new;
@@ -352,7 +359,7 @@ create policy documentos_update on public.documentos
 create policy observaciones_select on public.observaciones
   for select to authenticated
   using (
-    not auth.tiene_rol('consulta')
+    not public.tiene_rol('consulta')
     and exists (select 1 from public.misiones m where m.id = observaciones.mision_id)
   );
 
@@ -364,11 +371,11 @@ create policy observaciones_insert on public.observaciones
     autor_id = (select auth.uid())
     and (
       (
-        auth.tiene_rol('supervisor', 'admin')
+        public.tiene_rol('supervisor', 'admin')
         and exists (select 1 from public.misiones m where m.id = observaciones.mision_id)
       )
       or (
-        auth.tiene_rol('operador')
+        public.tiene_rol('operador')
         and exists (
           select 1 from public.misiones m
           where m.id = observaciones.mision_id
@@ -383,11 +390,11 @@ create policy observaciones_insert on public.observaciones
 create policy observaciones_update on public.observaciones
   for update to authenticated
   using (
-    auth.tiene_rol('supervisor', 'admin')
+    public.tiene_rol('supervisor', 'admin')
     and exists (select 1 from public.misiones m where m.id = observaciones.mision_id)
   )
   with check (
-    auth.tiene_rol('supervisor', 'admin')
+    public.tiene_rol('supervisor', 'admin')
     and exists (select 1 from public.misiones m where m.id = observaciones.mision_id)
   );
 
@@ -439,14 +446,14 @@ create policy notificaciones_update on public.notificaciones
 create policy auditoria_select on public.auditoria
   for select to authenticated
   using (
-    auth.tiene_rol('admin')
+    public.tiene_rol('admin')
     or (
-      auth.tiene_rol('supervisor')
+      public.tiene_rol('supervisor')
       and entidad in ('misiones', 'documentos', 'observaciones')
       and exists (
         select 1
         from public.misiones m
-        where m.unidad_id = auth.unidad_actual()
+        where m.unidad_id = public.unidad_actual()
           and (
             (auditoria.entidad = 'misiones' and auditoria.entidad_id = m.id::text)
             or (

@@ -14,5 +14,8 @@ export default defineConfig({
     // necesitan más margen que una prueba unitaria.
     testTimeout: 30_000,
     hookTimeout: 60_000,
+    // En serie: cada archivo de integración inicia sesión con varias cuentas, y
+    // en paralelo chocan con el límite de peticiones de Supabase Auth.
+    fileParallelism: false,
   },
 });

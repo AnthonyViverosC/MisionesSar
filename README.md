@@ -58,11 +58,27 @@ alguien la arrastrara a un componente de cliente, la compilación falla.
 ### Base de datos
 
 ```bash
-pnpm exec supabase login              # una sola vez por máquina
-pnpm exec supabase link --project-ref <SUPABASE_PROJECT_REF>
-pnpm db:push                          # aplica todas las migraciones
-pnpm db:seed                          # datos de prueba (opcional)
+pnpm db:aplicar     # aplica todas las migraciones por conexión directa
+pnpm db:estado      # diagnóstico: qué hay realmente aplicado
+pnpm db:seed        # datos de prueba (opcional)
 ```
+
+`db:aplicar` usa `SUPABASE_PROJECT_REF` y `SUPABASE_DB_PASSWORD`, aplica cada
+migración dentro de una transacción y las registra en
+`supabase_migrations.schema_migrations`, la misma tabla que usa el CLI oficial.
+Se prefiere al CLI porque `supabase db push` exige `supabase login` con un token
+personal, que en una máquina de desarrollo no siempre está a mano. Si prefieres
+el CLI, `pnpm db:push` sigue disponible tras enlazar el proyecto.
+
+Para rehacer el esquema desde cero en desarrollo (**borra todos los datos**):
+
+```bash
+node supabase/herramientas/aplicar-migraciones.mjs --reiniciar
+```
+
+> La conexión directa a Postgres de los proyectos nuevos de Supabase es
+> IPv6. Si tu red no tiene IPv6, usa la cadena del *connection pooler* que
+> aparece en Settings → Database.
 
 Las migraciones viven en `supabase/migrations` y se aplican en orden. **No
 configures nada a mano desde el panel de Supabase**: si un cambio no está en una
@@ -72,7 +88,7 @@ Orden de las migraciones:
 
 1. `tipos_y_extensiones` — enums y utilidades
 2. `catalogos` — unidades, aeronaves, tipos de misión
-3. `perfiles` — perfiles y funciones `auth.rol_actual()` / `auth.unidad_actual()`
+3. `perfiles` — perfiles y funciones `public.rol_actual()` / `public.unidad_actual()`
 4. `misiones` — expediente y coherencia con los catálogos
 5. `documentos` — versionado y completitud
 6. `observaciones_notificaciones`

@@ -42,14 +42,18 @@ create trigger perfiles_actualizado_en
 -- -----------------------------------------------------------------------------
 -- Funciones de identidad
 --
+-- Viven en `public` y no en `auth`: Supabase dejó de conceder al rol de la
+-- migración permiso de creación sobre el esquema `auth`, que ahora administra
+-- la propia plataforma. El comportamiento es idéntico; solo cambia el prefijo.
+--
 -- Son SECURITY DEFINER a propósito: leen `perfiles`, que tiene RLS activo, y si
--- se ejecutaran con los permisos de quien llama la política se llamaría a sí
--- misma en bucle. Al ejecutarse como el propietario saltan RLS y devuelven el
+-- se ejecutaran con los permisos de quien llama la política se llamarían a sí
+-- mismas en bucle. Al ejecutarse como el propietario saltan RLS y devuelven el
 -- dato de forma directa. `search_path = ''` obliga a calificar cada objeto y
 -- cierra la puerta a suplantaciones por búsqueda de esquema.
 -- -----------------------------------------------------------------------------
 
-create or replace function auth.rol_actual()
+create or replace function public.rol_actual()
 returns public.rol_usuario
 language sql
 stable
@@ -62,10 +66,10 @@ as $$
     and p.activo
 $$;
 
-comment on function auth.rol_actual is
+comment on function public.rol_actual is
   'Rol del usuario autenticado, o NULL si no hay sesión o está desactivado.';
 
-create or replace function auth.unidad_actual()
+create or replace function public.unidad_actual()
 returns uuid
 language sql
 stable
@@ -78,26 +82,26 @@ as $$
     and p.activo
 $$;
 
-comment on function auth.unidad_actual is
+comment on function public.unidad_actual is
   'Unidad del usuario autenticado. Frontera de visibilidad de operador y supervisor.';
 
 -- Atajo legible para las políticas: ¿el usuario tiene alguno de estos roles?
-create or replace function auth.tiene_rol(variadic roles public.rol_usuario[])
+create or replace function public.tiene_rol(variadic roles public.rol_usuario[])
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select auth.rol_actual() = any(roles)
+  select public.rol_actual() = any(roles)
 $$;
 
-comment on function auth.tiene_rol is
+comment on function public.tiene_rol is
   'Verdadero si el rol del usuario está entre los indicados.';
 
-grant execute on function auth.rol_actual to authenticated;
-grant execute on function auth.unidad_actual to authenticated;
-grant execute on function auth.tiene_rol to authenticated;
+grant execute on function public.rol_actual to authenticated;
+grant execute on function public.unidad_actual to authenticated;
+grant execute on function public.tiene_rol to authenticated;
 
 -- -----------------------------------------------------------------------------
 -- Alta de usuarios

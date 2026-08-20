@@ -68,9 +68,12 @@ describe.skipIf(!HAY_BASE)("políticas de RLS", () => {
     });
 
     it("el supervisor ve las misiones de su unidad", async () => {
+      // El supervisor ve varios perfiles de su unidad: hay que pedir el suyo.
+      const { data: usuario } = await supervisor.auth.getUser();
       const { data: perfil } = await supervisor
         .from("perfiles")
         .select("unidad_id")
+        .eq("id", usuario.user!.id)
         .single();
       const { data, error } = await supervisor.from("misiones").select("id, unidad_id");
 
@@ -132,12 +135,18 @@ describe.skipIf(!HAY_BASE)("políticas de RLS", () => {
       // Si la tiene enviada, ya no le pertenece la decisión.
       if (!propia) return;
 
-      const { error } = await operador
-        .from("misiones")
-        .update({ estado: "aprobada" })
-        .eq("id", propia.id);
+      await operador.from("misiones").update({ estado: "aprobada" }).eq("id", propia.id);
 
-      expect(error).not.toBeNull();
+      // La política de UPDATE no alcanza a una misión enviada, así que la fila
+      // queda fuera del alcance y no se modifica: PostgREST no devuelve error,
+      // simplemente no afecta ninguna fila. Lo que importa es el resultado.
+      const { data: despues } = await operador
+        .from("misiones")
+        .select("estado")
+        .eq("id", propia.id)
+        .single();
+
+      expect(despues!.estado).toBe("enviada");
     });
 
     it("nadie puede modificar una misión aprobada", async () => {

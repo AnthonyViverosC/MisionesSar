@@ -145,8 +145,8 @@ $$;
 comment on function public.mision_completa is
   'Verdadero cuando están los ocho archivos: 5 PDF + 2 fotos + 1 video.';
 
-grant execute on function public.contar_archivos_vigentes to authenticated;
-grant execute on function public.mision_completa to authenticated;
+grant execute on function public.contar_archivos_vigentes to authenticated, service_role;
+grant execute on function public.mision_completa to authenticated, service_role;
 
 -- -----------------------------------------------------------------------------
 -- Vista de apoyo para el listado: completitud por misión sin subconsultas
