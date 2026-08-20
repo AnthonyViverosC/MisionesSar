@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Ban, PencilLine, Upload } from "lucide-react";
+import { Ban, FolderDown, PencilLine, Upload } from "lucide-react";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { exigirSesion } from "@/lib/sesion";
 import { AccionesMision } from "@/components/misiones/acciones-mision";
@@ -120,6 +120,16 @@ export default async function PaginaDetalleMision({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {archivosVigentes > 0 ? (
+              <Button variant="outline" asChild>
+                {/* La descarga completa se arma en streaming en el servidor. */}
+                <a href={`/api/misiones/${id}/zip`}>
+                  <FolderDown className="size-4" aria-hidden />
+                  Descargar expediente
+                </a>
+              </Button>
+            ) : null}
+
             {puedeEditar ? (
               <>
                 <Button variant="outline" asChild>
