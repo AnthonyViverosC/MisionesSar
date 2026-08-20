@@ -148,13 +148,29 @@ Supabase:
 ## Despliegue en Vercel
 
 1. Sube el repositorio a GitHub e impórtalo en Vercel.
-2. Configura las variables de entorno del proyecto (las mismas de `.env.local`,
-   con `NEXT_PUBLIC_URL_APLICACION` apuntando al dominio real).
+2. En **Settings → Environment Variables**, define las mismas de `.env.local`,
+   marcando **Production, Preview y Development**:
+
+   | Variable | Valor en producción |
+   |---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxxx.supabase.co` |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | la clave *anon public* |
+   | `SUPABASE_SERVICE_ROLE_KEY` | la clave de servicio |
+   | `NEXT_PUBLIC_URL_APLICACION` | `https://tu-proyecto.vercel.app`, sin barra final |
+   | `NEXT_PUBLIC_MINUTOS_INACTIVIDAD` | `30` |
+
+   Las cuatro primeras son obligatorias: **sin ellas la compilación falla**, a
+   propósito, con un mensaje que dice cuál falta (`src/lib/entorno.ts`). Las
+   `NEXT_PUBLIC_*` se incrustan al compilar, así que después de añadirlas o
+   cambiarlas hay que **volver a desplegar**: guardar la variable no basta.
+   Las variables `SUPABASE_DB_PASSWORD`, `SUPABASE_PROJECT_REF` y
+   `PRUEBAS_CLAVE_USUARIOS` solo hacen falta en tu máquina, no en Vercel.
 3. En Supabase, **Authentication → URL Configuration**, agrega el dominio de
    Vercel a *Site URL* y a *Redirect URLs*, incluyendo `/auth/callback`.
 4. Aplica las migraciones contra el proyecto de producción con `pnpm db:push`.
 5. Configura el SMTP institucional en **Authentication → Emails**: el proveedor
    por defecto de Supabase tiene un límite bajo y no sirve para operación real.
+   Sin SMTP, las invitaciones de `/admin/usuarios` no llegan.
 
 ## Respaldos y recuperación
 
