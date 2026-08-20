@@ -3,10 +3,14 @@ import { z } from "zod";
 /**
  * Validación de las variables de entorno.
  *
- * Se valida al cargar el módulo para que una configuración incompleta falle de
- * inmediato y con un mensaje claro, en vez de producir errores oscuros a mitad
- * de una operación. Fallar aquí es deliberado: un despliegue sin credenciales
- * arrancaría, pero ninguna pantalla funcionaría.
+ * Se valida en el primer uso, no al importar el módulo. La diferencia importa al
+ * compilar: Next.js importa cada Route Handler para recolectar sus datos, y si
+ * la validación se ejecutara ahí, un despliegue sin variables fallaría con un
+ * «Failed to collect page data» que no dice nada del problema real.
+ *
+ * Compilar sin ellas es inofensivo —ninguna página estática habla con Supabase—,
+ * pero atender una petición sin ellas no lo es: por eso el primer acceso al
+ * entorno sí falla, y con un mensaje que nombra la variable que falta.
  */
 
 const esquemaPublico = z.object({
@@ -27,12 +31,13 @@ const esquemaPublico = z.object({
     .default(30),
 });
 
+type EntornoPublico = z.infer<typeof esquemaPublico>;
+
 /**
  * Una variable definida pero vacía equivale a no haberla definido.
  *
  * En el panel de Vercel es fácil crear una variable y dejarla en blanco; sin
- * esto, el mensaje de error hablaría de formato cuando el problema real es que
- * no tiene valor.
+ * esto, el mensaje hablaría de formato cuando el problema es que no tiene valor.
  */
 function valor(bruto: string | undefined): string | undefined {
   const limpio = bruto?.trim();
@@ -40,37 +45,75 @@ function valor(bruto: string | undefined): string | undefined {
 }
 
 /**
- * Variables disponibles en el navegador.
  * Next.js sustituye estas referencias en tiempo de compilación, por eso se
  * escriben completas y no con acceso dinámico.
  */
-const analisis = esquemaPublico.safeParse({
-  NEXT_PUBLIC_SUPABASE_URL: valor(process.env.NEXT_PUBLIC_SUPABASE_URL),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: valor(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-  NEXT_PUBLIC_URL_APLICACION: valor(process.env.NEXT_PUBLIC_URL_APLICACION),
-  NEXT_PUBLIC_MINUTOS_INACTIVIDAD: valor(process.env.NEXT_PUBLIC_MINUTOS_INACTIVIDAD),
-});
+function leerDelProceso() {
+  return {
+    NEXT_PUBLIC_SUPABASE_URL: valor(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: valor(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+    NEXT_PUBLIC_URL_APLICACION: valor(process.env.NEXT_PUBLIC_URL_APLICACION),
+    NEXT_PUBLIC_MINUTOS_INACTIVIDAD: valor(process.env.NEXT_PUBLIC_MINUTOS_INACTIVIDAD),
+  };
+}
 
-if (!analisis.success) {
-  // El error de Zod, tal cual, se pierde entre el ruido del registro de
-  // compilación y no dice qué variable hay que tocar. Este mensaje sí.
-  const problemas = analisis.error.issues
+/** Mensaje con la variable concreta que hay que corregir y dónde se configura. */
+function explicar(error: z.ZodError): string {
+  const problemas = error.issues
     .map((problema) => `  · ${problema.path.join(".") || "(sin nombre)"}: ${problema.message}`)
     .join("\n");
 
-  throw new Error(
+  return (
     `Variables de entorno incompletas o inválidas:\n${problemas}\n\n` +
-      "En local se leen de .env.local (usa .env.example como plantilla).\n" +
-      "En Vercel, en Settings → Environment Variables, marcando Production, Preview y " +
-      "Development. Las NEXT_PUBLIC_* se incrustan al compilar: después de añadirlas o " +
-      "cambiarlas hay que volver a desplegar para que surtan efecto.",
+    "En local se leen de .env.local (usa .env.example como plantilla).\n" +
+    "En Vercel, en Settings → Environment Variables, marcando Production, Preview y " +
+    "Development. Las NEXT_PUBLIC_* se incrustan al compilar: después de añadirlas o " +
+    "cambiarlas hay que volver a desplegar para que surtan efecto."
   );
 }
 
-export const entornoPublico = analisis.data;
+let resuelto: EntornoPublico | null = null;
+
+function resolver(): EntornoPublico {
+  if (resuelto) return resuelto;
+
+  const analisis = esquemaPublico.safeParse(leerDelProceso());
+
+  if (!analisis.success) {
+    throw new Error(explicar(analisis.error));
+  }
+
+  resuelto = analisis.data;
+  return resuelto;
+}
+
+// Aviso temprano, sin interrumpir. Deja el detalle en el registro de la
+// compilación, donde se ve antes de que nadie abra la aplicación.
+{
+  const analisis = esquemaPublico.safeParse(leerDelProceso());
+  if (!analisis.success) {
+    console.warn(`[entorno] ${explicar(analisis.error)}`);
+  }
+}
+
+/**
+ * Variables disponibles en el navegador.
+ *
+ * Es un proxy a propósito: leer cualquiera de sus campos dispara la validación,
+ * de modo que el error aparece cuando de verdad se necesita el valor y no al
+ * importar el módulo.
+ */
+export const entornoPublico = new Proxy({} as EntornoPublico, {
+  get(_objetivo, propiedad) {
+    if (typeof propiedad === "symbol") return undefined;
+    return resolver()[propiedad as keyof EntornoPublico];
+  },
+});
 
 /** Milisegundos de inactividad antes de cerrar la sesión. */
-export const MS_INACTIVIDAD = entornoPublico.NEXT_PUBLIC_MINUTOS_INACTIVIDAD * 60 * 1000;
+export function msInactividad(): number {
+  return entornoPublico.NEXT_PUBLIC_MINUTOS_INACTIVIDAD * 60 * 1000;
+}
 
 /** Milisegundos de antelación con que se avisa al usuario (2 minutos). */
 export const MS_AVISO_PREVIO = 2 * 60 * 1000;

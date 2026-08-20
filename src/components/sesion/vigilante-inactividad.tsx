@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Clock } from "lucide-react";
 import { continuarSesion } from "@/acciones/autenticacion";
-import { MS_AVISO_PREVIO, MS_INACTIVIDAD } from "@/lib/entorno";
+import { MS_AVISO_PREVIO, msInactividad } from "@/lib/entorno";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,7 +51,7 @@ export function VigilanteInactividad() {
 
     const reloj = window.setInterval(() => {
       const inactivo = Date.now() - ultimaActividad.current;
-      const restante = MS_INACTIVIDAD - inactivo;
+      const restante = msInactividad() - inactivo;
 
       if (restante <= 0) {
         // Se acabó el tiempo. Navegar fuerza el paso por el proxy, que es quien
@@ -89,7 +89,7 @@ export function VigilanteInactividad() {
             Tu sesión está por cerrarse
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Por seguridad, la sesión se cierra tras {Math.floor(MS_INACTIVIDAD / 60000)} minutos
+            Por seguridad, la sesión se cierra tras {Math.floor(msInactividad() / 60000)} minutos
             sin actividad. Se cerrará en{" "}
             <span className="font-mono font-medium text-texto" aria-live="polite">
               {minutos}:{String(resto).padStart(2, "0")}

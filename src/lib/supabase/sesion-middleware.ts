@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { entornoPublico, MS_INACTIVIDAD } from "@/lib/entorno";
+import { entornoPublico, msInactividad } from "@/lib/entorno";
 import type { Database } from "@/tipos/basedatos";
 
 /** Nombre de la cookie que guarda la marca de última actividad. */
@@ -79,7 +79,7 @@ export async function resolverSesion(request: NextRequest, respuesta: NextRespon
   const marcaActividad = Number(request.cookies.get(COOKIE_ACTIVIDAD)?.value ?? 0);
   const ahora = Date.now();
 
-  if (marcaActividad && ahora - marcaActividad > MS_INACTIVIDAD) {
+  if (marcaActividad && ahora - marcaActividad > msInactividad()) {
     await supabase.auth.signOut();
     const destino = request.nextUrl.clone();
     destino.pathname = "/login";
@@ -95,7 +95,7 @@ export async function resolverSesion(request: NextRequest, respuesta: NextRespon
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: Math.floor(MS_INACTIVIDAD / 1000),
+    maxAge: Math.floor(msInactividad() / 1000),
   });
 
   if (esRutaPublica(ruta) && !esRutaDeTramite(ruta)) {
