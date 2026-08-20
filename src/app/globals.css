@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  Sistema visual de MISIONES SAR.
+
+  Los valores salen de las imágenes de referencia: barra lateral azul marino,
+  contenido sobre gris muy claro, bordes sutiles y acento único institucional.
+  La aplicación es solo de modo claro: la referencia no plantea modo oscuro y
+  los operadores la usan en línea de vuelo, con luz alta.
+*/
+
+:root {
+  /* Azul marino institucional */
+  --marina-900: #0b1f3a; /* barra lateral, botones primarios, progreso */
+  --marina-800: #13294f; /* ítem activo de la navegación */
+  --marina-700: #1b3a6b; /* estados hover sobre azul */
+  --marina-400: #8fa3bf; /* texto secundario sobre azul */
+
+  /* Superficies y texto */
+  --superficie: #f7f8fa; /* fondo del área de contenido */
+  --superficie-alta: #ffffff; /* tarjetas y tablas */
+  --borde: #e4e7ec;
+  --borde-fuerte: #d0d5dd;
+  --texto: #101828;
+  --texto-suave: #667085;
+
+  /* Colores de estado (misión y completitud) */
+  --estado-gris: #667085;
+  --estado-azul: #175cd3;
+  --estado-indigo: #4e5ba6;
+  --estado-ambar: #b54708;
+  --estado-ambar-fondo: #fffaeb;
+  --estado-verde: #067647;
+  --estado-verde-fondo: #ecfdf3;
+  --estado-rojo: #b42318;
+  --estado-rojo-fondo: #fef3f2;
+  --estado-azul-fondo: #eff8ff;
+  --estado-gris-fondo: #f2f4f7;
+
+  /* Variables que consumen los componentes de shadcn/ui */
+  --background: var(--superficie);
+  --foreground: var(--texto);
+  --card: var(--superficie-alta);
+  --card-foreground: var(--texto);
+  --popover: var(--superficie-alta);
+  --popover-foreground: var(--texto);
+  --primary: var(--marina-900);
+  --primary-foreground: #ffffff;
+  --secondary: var(--estado-gris-fondo);
+  --secondary-foreground: var(--texto);
+  --muted: var(--estado-gris-fondo);
+  --muted-foreground: var(--texto-suave);
+  --accent: var(--estado-gris-fondo);
+  --accent-foreground: var(--texto);
+  --destructive: var(--estado-rojo);
+  --destructive-foreground: #ffffff;
+  --border: var(--borde);
+  --input: var(--borde-fuerte);
+  --ring: var(--marina-700);
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-marina-900: var(--marina-900);
+  --color-marina-800: var(--marina-800);
+  --color-marina-700: var(--marina-700);
+  --color-marina-400: var(--marina-400);
+
+  --color-superficie: var(--superficie);
+  --color-borde: var(--borde);
+  --color-borde-fuerte: var(--borde-fuerte);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+
+  --color-estado-gris: var(--estado-gris);
+  --color-estado-azul: var(--estado-azul);
+  --color-estado-indigo: var(--estado-indigo);
+  --color-estado-ambar: var(--estado-ambar);
+  --color-estado-verde: var(--estado-verde);
+  --color-estado-rojo: var(--estado-rojo);
+  --color-estado-gris-fondo: var(--estado-gris-fondo);
+  --color-estado-azul-fondo: var(--estado-azul-fondo);
+  --color-estado-ambar-fondo: var(--estado-ambar-fondo);
+  --color-estado-verde-fondo: var(--estado-verde-fondo);
+  --color-estado-rojo-fondo: var(--estado-rojo-fondo);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--fuente-interfaz);
+  --font-serif: var(--fuente-titulos);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--fuente-interfaz), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Foco siempre visible: la aplicación debe ser operable solo con teclado. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Respeta la preferencia del sistema de reducir movimiento. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Enlace de salto para navegación por teclado. */
+.salto-contenido {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--marina-900);
+  color: #ffffff;
+  border-radius: 0 0 var(--radius) 0;
+}
+
+.salto-contenido:focus {
+  left: 0;
+}

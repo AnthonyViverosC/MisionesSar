@@ -1,0 +1,39 @@
+# Dependencias
+/node_modules
+/.pnp
+.pnp.*
+
+# Compilación
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# Pruebas
+/coverage
+
+# Variables de entorno: nunca se versionan (solo .env.example)
+.env
+.env.*
+!.env.example
+
+# Supabase CLI (estado local del enlace con el proyecto)
+/supabase/.temp
+/supabase/.branches
+
+# Vercel
+.vercel
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Material de referencia del diseño (no forma parte del código)
+/imagenes de referecencia/
